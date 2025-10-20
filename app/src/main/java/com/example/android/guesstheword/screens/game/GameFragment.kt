@@ -16,7 +16,11 @@
 
 package com.example.android.guesstheword.screens.game
 
+import android.content.Context
+import android.os.Build
 import android.os.Bundle
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -69,13 +73,29 @@ class GameFragment : Fragment() {
             }
         })
 
-        // TODO (09) Created an observer for the buzz event which calls the buzz method with the
-        // correct pattern. Remember to call onBuzzComplete!
+        viewModel.buzzEvent.observe(viewLifecycleOwner, Observer { buzzType ->
+            if(buzzType != GameViewModel.BuzzType.NO_BUZZ) {
+                buzz(buzzType.pattern)
+                viewModel.onBuzzComplete()
+            }
+        })
 
         return binding.root
 
     }
 
-    // TODO (08) Copy over the buzz method here
+    private fun buzz(pattern: LongArray) {
+        val buzzer = activity?.getSystemService<Vibrator>(Vibrator::class.java)
+
+        buzzer?.let {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                buzzer.vibrate(VibrationEffect.createWaveform(pattern, -1))
+            } else {
+                //deprecated in API 26
+                @Suppress("DEPRECATION")
+                buzzer.vibrate(pattern, -1)
+            }
+        }
+    }
 
 }
